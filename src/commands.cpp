@@ -250,6 +250,7 @@ void Commands::reloadInfo(Player& player, const std::string& param)
 		g_chat->load();
 		player.sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Reloaded chatchannels.");
 	} else if (tmpParam == "global") {
+		g_game.groups.reset();
 		g_luaEnvironment.loadFile("data/global.lua");
 		player.sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Reloaded global.lua.");
 	} else {

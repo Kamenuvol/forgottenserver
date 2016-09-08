@@ -26,22 +26,27 @@
 
 bool Groups::load()
 {
-	pugi::xml_document doc;
-	pugi::xml_parse_result result = doc.load_file("data/XML/groups.xml");
-	if (!result) {
-		printXMLError("Error - Groups::load", "data/XML/groups.xml", result);
-		return false;
-	}
+	if(groups.empty()){//groups.lua not loaded before
 
-	for (auto groupNode : doc.child("groups").children()) {
-		Group group;
-		group.id = pugi::cast<uint32_t>(groupNode.attribute("id").value());
-		group.name = groupNode.attribute("name").as_string();
-		group.flags = pugi::cast<uint64_t>(groupNode.attribute("flags").value());
-		group.access = groupNode.attribute("access").as_bool();
-		group.maxDepotItems = pugi::cast<uint32_t>(groupNode.attribute("maxdepotitems").value());
-		group.maxVipEntries = pugi::cast<uint32_t>(groupNode.attribute("maxvipentries").value());
-		groups.push_back(group);
+		std::cout << "[Deprecated] Loading groups.xml... Please, use groups.lua. More information on github repository." << std::endl;
+
+		pugi::xml_document doc;
+		pugi::xml_parse_result result = doc.load_file("data/XML/groups.xml");
+		if (!result) {
+			printXMLError("Error - Groups::load", "data/XML/groups.xml", result);
+			return false;
+		}
+
+		for (auto groupNode : doc.child("groups").children()) {
+			Group group;
+			group.id = pugi::cast<uint32_t>(groupNode.attribute("id").value());
+			group.name = groupNode.attribute("name").as_string();
+			group.flags = pugi::cast<uint64_t>(groupNode.attribute("flags").value());
+			group.access = groupNode.attribute("access").as_bool();
+			group.maxDepotItems = pugi::cast<uint32_t>(groupNode.attribute("maxdepotitems").value());
+			group.maxVipEntries = pugi::cast<uint32_t>(groupNode.attribute("maxvipentries").value());
+			groups.push_back(group);
+		}
 	}
 	return true;
 }
@@ -54,4 +59,15 @@ Group* Groups::getGroup(uint16_t id)
 		}
 	}
 	return nullptr;
+}
+
+Group* Groups::addGroup(Group group)
+{
+	groups.push_back(group);
+	return getGroup(group.id);
+}
+
+void Groups::reset()
+{
+	groups.clear();
 }

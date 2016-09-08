@@ -32,7 +32,9 @@ struct Group {
 class Groups {
 	public:
 		bool load();
+		void reset();
 		Group* getGroup(uint16_t id);
+		Group* addGroup(Group group);
 
 	private:
 		std::vector<Group> groups;

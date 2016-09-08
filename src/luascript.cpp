@@ -9800,16 +9800,60 @@ int LuaScriptInterface::luaGuildSetMotd(lua_State* L)
 // Group
 int LuaScriptInterface::luaGroupCreate(lua_State* L)
 {
-	// Group(id)
-	uint32_t id = getNumber<uint32_t>(L, 2);
-
-	Group* group = g_game.groups.getGroup(id);
-	if (group) {
-		pushUserdata<Group>(L, group);
-		setMetatable(L, -1, "Group");
-	} else {
-		lua_pushnil(L);
+	// Group(id or {config})
+	if (isNumber(L, 2)) {
+		uint16_t id = getNumber<uint16_t>(L, 2);
+		Group* group = g_game.groups.getGroup(id);
+		if (group) {
+			pushUserdata<Group>(L, group);
+			setMetatable(L, -1, "Group");
+		} else {
+			lua_pushnil(L);
+		}
+		return 1;
 	}
+
+	if (isTable(L, 2)) {
+		lua_getfield(L, 2, "id");//3
+		lua_getfield(L, 2, "name");//4
+		lua_getfield(L, 2, "access");//5
+		lua_getfield(L, 2, "maxDepotItems");//6
+		lua_getfield(L, 2, "maxVipEntries");//7
+		lua_getfield(L, 2, "flags");//8
+
+		if (isNumber(L, 3)) {
+			uint16_t id = getNumber<uint16_t>(L, 3);
+			if (g_game.groups.getGroup(id)) {
+				std::cout << "[Warning] Error loading group " << id << ". Duplicated id." << std::endl;
+				lua_pushnil(L);
+				return 1;
+			}
+
+			Group newGroup;
+			newGroup.id = id;
+			newGroup.name = getString(L, 4);
+			newGroup.access = getBoolean(L, 5, false);
+			newGroup.maxDepotItems = getNumber<uint32_t>(L, 6, 0);
+			newGroup.maxVipEntries = getNumber<uint32_t>(L, 7, 0);
+
+			uint64_t flags = 0;
+			if (isTable(L, 8)) {
+				lua_pushnil(L);
+				while (lua_next(L, 8) != 0) {
+					flags = flags | getNumber<uint64_t>(L, -1, 0);
+					lua_pop(L, 1);
+				}
+			}
+			newGroup.flags = flags;
+
+			Group* group = g_game.groups.addGroup(newGroup);
+			pushUserdata<Group>(L, group);
+			setMetatable(L, -1, "Group");
+			return 1;
+		}
+		std::cout << "[Warning] Error loading group. Invalid id." << std::endl;
+	}
+	lua_pushnil(L);
 	return 1;
 }
 
